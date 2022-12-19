@@ -56,3 +56,32 @@ addEventListener('fetch', event => {
     }
   }
 });
+
+async function checkPowerOutages(event) {
+  const stats = JSON.parse(await POWER_ALARM_KV.get("stats"));
+  const wasPowerOutage = JSON.parse(await POWER_ALARM_KV.get("wasPowerOutage"));
+
+  let isPowerOutage = true;
+  for (const stat of stats.reverse()) {
+    if (Math.floor(event.scheduledTime/1000) - stat[0] < 300) {
+      if ([stat[1]]) {
+        isPowerOutage = false;
+      }
+    } else {
+      break;
+    }
+  }
+
+  if (wasPowerOutage !== isPowerOutage) {
+    await POWER_ALARM_KV.put("wasPowerOutage", JSON.stringify(isPowerOutage));
+    await sendMessage(
+      690766397,
+      isPowerOutage ? "There is power outage detected" : "Power is regained bro!"
+    );
+  }
+}
+
+
+addEventListener("scheduled", (event) => {
+  event.waitUntil(checkPowerOutages(event));
+});
