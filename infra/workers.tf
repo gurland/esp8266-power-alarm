@@ -1,5 +1,5 @@
 resource "cloudflare_workers_kv_namespace" "power_alarm" {
-  title = "power_alarm"
+  title = "power_alarm_kv"
 }
 
 resource "cloudflare_worker_script" "stats_service" {
@@ -7,8 +7,13 @@ resource "cloudflare_worker_script" "stats_service" {
   content = file("../stats_service/src/main.js")
 
   kv_namespace_binding {
-    name         = "POWER_ALARM"
+    name         = "POWER_ALARM_KV"
     namespace_id = cloudflare_workers_kv_namespace.power_alarm.id
+  }
+
+  secret_text_binding {
+    name = "API_SECRET"
+    text = var.api_secret
   }
 }
 
