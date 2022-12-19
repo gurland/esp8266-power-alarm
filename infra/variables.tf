@@ -8,6 +8,15 @@ variable "telegram_bot_token" {
   default = "test_token"
 }
 
+variable "cf_account_id" {
+  description = "Cloudflare Account ID"
+}
+
+variable "cf_api_token" {
+  description = "Cloudflare API Key"
+}
+
 variable "cf_account_name" {
+  description = "Cloudflare Account name (used as subdomain for *.workers.dev"
   default = "test_name"
 }

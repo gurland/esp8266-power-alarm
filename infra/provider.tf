@@ -8,4 +8,6 @@ terraform {
 }
 
 provider "cloudflare" {
+  api_token = var.cf_api_token
+  account_id = var.cf_account_id
 }
