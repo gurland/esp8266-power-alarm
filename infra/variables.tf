@@ -20,3 +20,7 @@ variable "cf_account_name" {
   description = "Cloudflare Account name (used as subdomain for *.workers.dev"
   default = "test_name"
 }
+
+variable "base_tg_bot_service_api_url" {
+  description = "Cloudflare hosted worker BASE URL for telegram webhook setup"
+}
