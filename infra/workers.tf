@@ -22,7 +22,7 @@ resource "cloudflare_worker_script" "tg_bot_service" {
   content = file("../bot_service/dist/main.js")
 
   kv_namespace_binding {
-    name         = "POWER_ALARM"
+    name         = "POWER_ALARM_KV"
     namespace_id = cloudflare_workers_kv_namespace.power_alarm.id
   }
 
@@ -35,4 +35,12 @@ resource "cloudflare_worker_script" "tg_bot_service" {
     name = "BASE_TG_BOT_SERVICE_API_URL"
     text = var.base_tg_bot_service_api_url
   }
+}
+
+resource "cloudflare_worker_cron_trigger" "power_check_cron_trigger" {
+  script_name = cloudflare_worker_script.tg_bot_service.name
+  account_id = var.cf_account_id
+  schedules   = [
+    "*/5 * * * *",      # every 5 minutes
+  ]
 }
