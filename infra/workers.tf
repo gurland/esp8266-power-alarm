@@ -41,6 +41,6 @@ resource "cloudflare_worker_cron_trigger" "power_check_cron_trigger" {
   script_name = cloudflare_worker_script.tg_bot_service.name
   account_id = var.cf_account_id
   schedules   = [
-    "*/5 * * * *",      # every 5 minutes
+    "* * * * *",
   ]
 }
