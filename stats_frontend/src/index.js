@@ -23,12 +23,12 @@ function transformStatusData(statusData) {
   for (const currentStatusEntry of statusData) {
     if (currentStatusEntry[0] - lastStatusEntry[0] > 300) {
       result.push(transformStatusEntry(lastStatusEntry[0], lastStatusEntry[1]));
-      result.push(transformStatusEntry(lastStatusEntry[0]+60, 1 - lastStatusEntry[1]));
+      result.push(transformStatusEntry(lastStatusEntry[0] + 60, 1 - lastStatusEntry[1]));
       wasPowerOff = true;
     }
     if (wasPowerOff) {
       wasPowerOff = false
-      result.push(transformStatusEntry(currentStatusEntry[0]-60, 1- currentStatusEntry[1]))
+      result.push(transformStatusEntry(currentStatusEntry[0] - 60, 1 - currentStatusEntry[1]))
 
       result.push(transformStatusEntry(currentStatusEntry[0], currentStatusEntry[1]))
     }
@@ -41,24 +41,24 @@ function transformStatusData(statusData) {
 
 function renderPlot(data) {
   console.log(data)
-    let plot = Plot.plot({
-      marks: [
-        Plot.areaY(data, {
-          filter: d => !d.status,
-          x: "date",
-          y2: "status",
-          fill: "#eee"
-        }),
-        Plot.areaY(data, {
-          x: "date",
-          y2: "status",
-          fill: "steelblue"
-        })
-      ]
-    })
+  let plot = Plot.plot({
+    marks: [
+      Plot.areaY(data, {
+        filter: d => !d.status,
+        x: "date",
+        y2: "status",
+        fill: "#eee"
+      }),
+      Plot.areaY(data, {
+        x: "date",
+        y2: "status",
+        fill: "steelblue"
+      })
+    ]
+  })
 
-    charDiv.innerHTML = ''
-    charDiv.append(plot)
+  charDiv.innerHTML = ''
+  charDiv.append(plot)
 }
 
 async function getData(startDate, endDate) {
@@ -71,7 +71,7 @@ async function getData(startDate, endDate) {
   })
 }
 
-async function init(){
+async function init() {
   const data = await getData(new Date(startDateInput.value), new Date(endDateInput.value));
   renderPlot(data);
 
@@ -84,41 +84,36 @@ async function init(){
 init()
 
 
-
-
-
-
-
-    // console.log(chart)
-    //
-    //
-    //
-    // let col = ['status', ...transformStatusData(rawStatusData)]
-    // console.log(col)
-    //
-    // c3.generate({
-    //   bindto: "#chart",
-    //   zoom: {
-    //     enabled: true
-    //   },
-    //   axis: {
-    //     x: {
-    //         type: 'timeseries' // this needed to load string x value
-    //     },
-    //     status: {
-    //       type: 'category',
-    //       categories: [1, 0]
-    //     }
-    // },
-    //   data: {
-    //     x: 'x',
-    //     columns: [
-    //       ['x', ...(transformStatusData(rawStatusData).map(x=>x.date))],
-    //       ['status', ...transformStatusData(rawStatusData).map(x=>x.status)]
-    //     ],
-    //     types: {
-    //       status: 'line'
-    //     }
-    //   }
-    // });
+// console.log(chart)
+//
+//
+//
+// let col = ['status', ...transformStatusData(rawStatusData)]
+// console.log(col)
+//
+// c3.generate({
+//   bindto: "#chart",
+//   zoom: {
+//     enabled: true
+//   },
+//   axis: {
+//     x: {
+//         type: 'timeseries' // this needed to load string x value
+//     },
+//     status: {
+//       type: 'category',
+//       categories: [1, 0]
+//     }
+// },
+//   data: {
+//     x: 'x',
+//     columns: [
+//       ['x', ...(transformStatusData(rawStatusData).map(x=>x.date))],
+//       ['status', ...transformStatusData(rawStatusData).map(x=>x.status)]
+//     ],
+//     types: {
+//       status: 'line'
+//     }
+//   }
+// });
 
