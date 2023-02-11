@@ -1,11 +1,12 @@
-import * as Plot from "@observablehq/plot";
+import {Chart, registerables, Tooltip} from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
+import 'chartjs-adapter-moment';
+
+Chart.register(zoomPlugin, ...registerables);
 
 const charDiv = document.getElementById("chart");
-const startDateInput = document.getElementById("startDate");
-const endDateInput = document.getElementById("endDate");
+const ctx = document.getElementById('myChart');
 
-startDateInput.value = "2023-02-01"
-endDateInput.value = new Date().toISOString().substring(0, 10)
 
 function transformStatusEntry(timestamp, status) {
   return {
@@ -13,7 +14,6 @@ function transformStatusEntry(timestamp, status) {
     status: status
   }
 }
-
 
 function transformStatusData(statusData) {
   let lastStatusEntry = statusData.shift();
@@ -36,84 +36,117 @@ function transformStatusData(statusData) {
     lastStatusEntry = currentStatusEntry;
   }
 
+  result.push(transformStatusEntry(Date.now()/1000, result[result.length-1].status))
+
   return result
 }
+let tooltipCoords = {x: 0, y: 0}
+
+function titleHandler(tooltipItems) {
+  console.log(arguments)
+  let event = tooltipItems[0]
+  let msBetweenChartEnds = event.chart.scales.x.max - event.chart.scales.x.min
+  let msInOneXPixel = msBetweenChartEnds / event.chart.width
+
+  let currentTimestamp = event.chart.scales.x.min + (tooltipCoords.x * msInOneXPixel)
+  const currentDate = new Date(currentTimestamp)
+  return currentDate.toLocaleString('en-US')
+}
+
+
+Tooltip.positioners.op = function (elements, coords) {
+  //tooltipCoords = coords
+  return coords;
+};
 
 function renderPlot(data) {
   console.log(data)
-  let plot = Plot.plot({
-    marks: [
-      Plot.areaY(data, {
-        filter: d => !d.status,
-        x: "date",
-        y2: "status",
-        fill: "#eee"
-      }),
-      Plot.areaY(data, {
-        x: "date",
-        y2: "status",
-        fill: "steelblue"
-      })
-    ]
-  })
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(e => e.date),
+      datasets: [{
+        label: 'Status',
+        data: data.map(e => e.status),
+        borderWidth: 1,
+        fill: true
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: {
+        mode: 'x'
+      },
+      hover: {
+        mode: 'nearest',
+        intersect: true
+      },
+      onHover: (e) => {tooltipCoords=e},
 
-  charDiv.innerHTML = ''
-  charDiv.append(plot)
+      scales: {
+        x: {
+          type: 'time',
+          timeseries: {
+            unit: 'day',
+            displayFormats: {
+              'hour': 'DD-MMM HH:mm'
+            }
+          },
+          scaleLabel: {
+            display: true,
+            labelString: 'Date'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          position: 'op',
+          callbacks: {
+            title: titleHandler
+
+          }
+        },
+        zoom: {
+          limits: {
+            x: {minRange: 24 * 60 * 60 * 1000},
+          },
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: {
+              enabled: true,
+            },
+            pinch: {
+              enabled: true
+            },
+            mode: 'x',
+          }
+        }
+      }
+
+    }
+  });
 }
 
-async function getData(startDate, endDate) {
+async function getData() {
   const response = await fetch('./src/data.json');
   const rawStatusData = (await response.json())
   let data = transformStatusData(rawStatusData);
 
-  return data.filter(entry => {
-    return entry.date > startDate && entry.date <= endDate
-  })
+  return data
 }
 
 async function init() {
-  const data = await getData(new Date(startDateInput.value), new Date(endDateInput.value));
+  const data = await getData();
   renderPlot(data);
-
-  [startDateInput, endDateInput].forEach(inp => inp.addEventListener("change", async (e) => {
-    const data = await getData(new Date(startDateInput.value), new Date(endDateInput.value))
-    renderPlot(data)
-  }))
 }
 
 init()
-
-
-// console.log(chart)
-//
-//
-//
-// let col = ['status', ...transformStatusData(rawStatusData)]
-// console.log(col)
-//
-// c3.generate({
-//   bindto: "#chart",
-//   zoom: {
-//     enabled: true
-//   },
-//   axis: {
-//     x: {
-//         type: 'timeseries' // this needed to load string x value
-//     },
-//     status: {
-//       type: 'category',
-//       categories: [1, 0]
-//     }
-// },
-//   data: {
-//     x: 'x',
-//     columns: [
-//       ['x', ...(transformStatusData(rawStatusData).map(x=>x.date))],
-//       ['status', ...transformStatusData(rawStatusData).map(x=>x.status)]
-//     ],
-//     types: {
-//       status: 'line'
-//     }
-//   }
-// });
-
